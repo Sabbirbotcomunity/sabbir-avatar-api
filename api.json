@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "data": {
+    "AvatarCanvas": "https://sabbir-avatar-api.onrender.com/avatar/Sabbir",
+    "Author": "Sabbir",
+    "Version": "1.0.0"
+  }
+}
