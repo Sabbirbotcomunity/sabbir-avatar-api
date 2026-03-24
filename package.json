@@ -2,23 +2,18 @@
   "name": "sabbir-avatar-api",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
-  "main": "index.js",
+  "description": "Avatar API by Sabbir",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Sabbirbotcomunity/sabbir-avatar-api.git"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Sabbir",
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Sabbirbotcomunity/sabbir-avatar-api/issues"
-  },
-  "homepage": "https://github.com/Sabbirbotcomunity/sabbir-avatar-api#readme",
   "dependencies": {
     "@multiavatar/multiavatar": "^1.0.7",
     "express": "^5.2.1"
