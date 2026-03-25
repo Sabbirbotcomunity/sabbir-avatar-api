@@ -6,76 +6,60 @@ const { createCanvas, loadImage } = canvas;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// আপনার দেওয়া নতুন ডাইরেক্ট লিঙ্ক
 const IMAGES = {
-    toilet: "https://i.ibb.co.com/9mY60z5p/received-1628470388385938.webp",
-    jail: "https://i.postimg.cc/Xv8P3p7K/jail.png",
-    hack: "https://i.postimg.cc/6pM0rX3V/hack.png",
-    trash: "https://i.postimg.cc/85zX3S6m/trash.png",
-    wanted: "https://i.postimg.cc/qR8v6S80/wanted.png",
-    rip: "https://i.postimg.cc/L5vP8hYn/rip.png"
+    toilet: "https://i.ibb.co.com/WNzX1bf0/IMG-20260325-122616.jpg"
 };
 
-// এই ফাংশনটি যেকোনো লিঙ্ক থেকে ছবি ডাউনলোড করে ক্যানভাসে দিবে
 async function fetchImage(url) {
     try {
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        const response = await axios.get(url, { 
+            responseType: 'arraybuffer',
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
         return await loadImage(Buffer.from(response.data));
     } catch (e) {
-        console.log("Image load failed, using default.");
-        // ছবি না পেলে একটি ডিফল্ট প্রোফাইল পিকচার দিবে
+        // ছবি লোড না হলে ডিফল্ট ছবি দিবে
         const fallback = await axios.get("https://i.imgur.com/6VBn396.png", { responseType: 'arraybuffer' });
         return await loadImage(Buffer.from(fallback.data));
     }
 }
 
-async function generateFrame(type, userId, res, size, x, y, isCircle = true) {
+async function generateFrame(userId, res, size, x, y) {
     try {
-        const bgUrl = IMAGES[type];
-        const userImgUrl = `https://graph.facebook.com/${userId}/picture?width=512&height=512`;
-
-        // সরাসরিloadImage না করে আমাদের ফাংশন দিয়ে ছবি আনছি
-        const bgImg = await fetchImage(bgUrl);
+        const bgImg = await fetchImage(IMAGES.toilet);
+        
+        // ফেসবুক প্রোফাইল পিকচার প্রক্সি (429 Error এড়াতে)
+        const userImgUrl = `https://www.facebook.com/sharing/restoration/?id=${userId}&field=picture&width=512&height=512`;
         const userImg = await fetchImage(userImgUrl);
 
-        const canvas = createCanvas(bgImg.width, bgImg.height);
-        const ctx = canvas.getContext('2d');
+        const cvs = createCanvas(bgImg.width, bgImg.height);
+        const ctx = cvs.getContext('2d');
 
-        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+        // ১. আপনার ব্যাকগ্রাউন্ড ছবি আঁকা
+        ctx.drawImage(bgImg, 0, 0, cvs.width, cvs.height);
 
+        // ২. ইউজারের ছবি গোল করে বসানো
         ctx.save();
-        if (isCircle) {
-            ctx.beginPath();
-            ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
-            ctx.closePath();
-            ctx.clip();
-        }
+        ctx.beginPath();
+        ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip();
         ctx.drawImage(userImg, x, y, size, size);
         ctx.restore();
 
         res.setHeader('Content-Type', 'image/png');
-        res.send(canvas.toBuffer());
+        res.send(cvs.toBuffer());
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ error: "API Error", msg: error.message });
     }
 }
 
-// --- API Endpoints ---
-app.get('/toilet/:id', (req, res) => generateFrame('toilet', req.params.id, res, 130, 345, 620));
-app.get('/jail/:id', (req, res) => generateFrame('jail', req.params.id, res, 250, 125, 150));
-app.get('/hack/:id', (req, res) => generateFrame('hack', req.params.id, res, 300, 100, 80, false));
-
-app.get('/api-list', (req, res) => {
-    const host = `https://${req.get('host')}`;
-    res.json({
-        "toilet": `${host}/toilet/ID`,
-        "jail": `${host}/jail/ID`,
-        "hack": `${host}/hack/ID`,
-        "trash": `${host}/trash/ID`,
-        "wanted": `${host}/wanted/ID`,
-        "rip": `${host}/rip/ID`
-    });
+app.get('/toilet/:id', (req, res) => {
+    // এই মানগুলো আপনার নতুন ছবির পজিশন অনুযায়ী (চেক করে দেখতে পারেন)
+    generateFrame(req.params.id, res, 48, 134, 196);
 });
 
-app.get('/', (req, res) => res.redirect('/api-list'));
+app.get('/', (req, res) => res.json({ status: "Online", endpoint: "/toilet/ID" }));
 
-app.listen(PORT, () => console.log(`Server live on ${PORT}`));
+app.listen(PORT, () => console.log(`Server is running on ${PORT}`));
