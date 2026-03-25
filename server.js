@@ -1,5 +1,6 @@
 import express from 'express';
 import canvas from 'canvas';
+import axios from 'axios';
 
 const { createCanvas, loadImage } = canvas;
 const app = express();
@@ -14,28 +15,30 @@ const IMAGES = {
     rip: "https://i.postimg.cc/L5vP8hYn/rip.png"
 };
 
-// এই ফাংশনটি ছবি লোড করতে সাহায্য করবে, ৪০৪ এরর দিবে না
-async function getSafeImage(url) {
+// এই ফাংশনটি যেকোনো লিঙ্ক থেকে ছবি ডাউনলোড করে ক্যানভাসে দিবে
+async function fetchImage(url) {
     try {
-        return await loadImage(url);
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        return await loadImage(Buffer.from(response.data));
     } catch (e) {
+        console.log("Image load failed, using default.");
         // ছবি না পেলে একটি ডিফল্ট প্রোফাইল পিকচার দিবে
-        return await loadImage("https://i.imgur.com/6VBn396.png");
+        const fallback = await axios.get("https://i.imgur.com/6VBn396.png", { responseType: 'arraybuffer' });
+        return await loadImage(Buffer.from(fallback.data));
     }
 }
 
 async function generateFrame(type, userId, res, size, x, y, isCircle = true) {
     try {
         const bgUrl = IMAGES[type];
-        // ফেসবুকের প্রোফাইল পিকচার পাওয়ার বিকল্প লিঙ্ক
         const userImgUrl = `https://graph.facebook.com/${userId}/picture?width=512&height=512`;
 
-        const bgImg = await loadImage(bgUrl);
-        const userImg = await getSafeImage(userImgUrl);
+        // সরাসরিloadImage না করে আমাদের ফাংশন দিয়ে ছবি আনছি
+        const bgImg = await fetchImage(bgUrl);
+        const userImg = await fetchImage(userImgUrl);
 
         const canvas = createCanvas(bgImg.width, bgImg.height);
         const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
 
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
@@ -56,7 +59,11 @@ async function generateFrame(type, userId, res, size, x, y, isCircle = true) {
     }
 }
 
-// --- আপনার স্ক্রিনশটের মতো JSON API List ---
+// --- API Endpoints ---
+app.get('/toilet/:id', (req, res) => generateFrame('toilet', req.params.id, res, 130, 345, 620));
+app.get('/jail/:id', (req, res) => generateFrame('jail', req.params.id, res, 250, 125, 150));
+app.get('/hack/:id', (req, res) => generateFrame('hack', req.params.id, res, 300, 100, 80, false));
+
 app.get('/api-list', (req, res) => {
     const host = `https://${req.get('host')}`;
     res.json({
@@ -65,18 +72,10 @@ app.get('/api-list', (req, res) => {
         "hack": `${host}/hack/ID`,
         "trash": `${host}/trash/ID`,
         "wanted": `${host}/wanted/ID`,
-        "rip": `${host}/rip/ID`,
-        "AvatarCanvas": `${host}/toilet/`
+        "rip": `${host}/rip/ID`
     });
 });
 
-// Routes
-app.get('/toilet/:id', (req, res) => generateFrame('toilet', req.params.id, res, 130, 345, 620));
-app.get('/jail/:id', (req, res) => generateFrame('jail', req.params.id, res, 250, 125, 150));
-app.get('/hack/:id', (req, res) => generateFrame('hack', req.params.id, res, 300, 100, 80, false));
-
-app.get('/', (req, res) => {
-    res.redirect('/api-list');
-});
+app.get('/', (req, res) => res.redirect('/api-list'));
 
 app.listen(PORT, () => console.log(`Server live on ${PORT}`));
