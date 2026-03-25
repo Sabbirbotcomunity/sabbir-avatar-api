@@ -5,7 +5,7 @@ const { createCanvas, loadImage } = canvas;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- আপনার নির্দিষ্ট ছবিগুলোর ডাইরেক্ট লিঙ্ক ---
+// --- আপনার নির্ধারিত ছবিগুলোর ডাইরেক্ট লিঙ্ক ---
 const IMAGES = {
     toilet: "https://i.ibb.co/pBT966n/image.png", 
     jail: "https://i.postimg.cc/Xv8P3p7K/jail.png", 
@@ -16,27 +16,30 @@ const IMAGES = {
     hitler: "https://i.postimg.cc/j5X3fW3X/hitler.png"
 };
 
-// মেইন ইমেজ এডিটিং ফাংশন
+// কমন ফাংশন: ছবি জেনারেট করার জন্য
 async function generateFrame(type, userId, res, size, x, y, isCircle = true) {
     try {
         const bgUrl = IMAGES[type];
-        // হাই রেজোলিউশন ফেসবুক প্রোফাইল পিকচার
-        const userImgUrl = `https://graph.facebook.com/${userId}/picture?width=1024&height=1024&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+        // ফেসবুকের প্রোফাইল পিকচার পাওয়ার জন্য সবচেয়ে স্টেবল লিঙ্ক
+        const userImgUrl = `https://graph.facebook.com/${userId}/picture?width=512&height=512`;
 
+        // ছবিগুলো লোড করা
         const [bgImg, userImg] = await Promise.all([
             loadImage(bgUrl),
-            loadImage(userImgUrl)
+            loadImage(userImgUrl).catch(() => loadImage("https://i.imgur.com/6VBn396.png")) // ছবি না পেলে ডিফল্ট ছবি
         ]);
 
         const canvas = createCanvas(bgImg.width, bgImg.height);
         const ctx = canvas.getContext('2d');
+        
+        // কোয়ালিটি স্মুথ করা
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // ১. ব্যাকগ্রাউন্ড ইমেজ ড্র করা
+        // ১. মেইন ব্যাকগ্রাউন্ড আঁকা
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-        // ২. প্রোফাইল পিকচার এডিট করে বসানো
+        // ২. প্রোফাইল পিকচার প্রসেসিং
         ctx.save();
         if (isCircle) {
             ctx.beginPath();
@@ -47,56 +50,72 @@ async function generateFrame(type, userId, res, size, x, y, isCircle = true) {
         ctx.drawImage(userImg, x, y, size, size);
         ctx.restore();
 
+        // আউটপুট পাঠানো
         res.setHeader('Content-Type', 'image/png');
         res.send(canvas.toBuffer());
+
     } catch (error) {
-        console.error(`Error in ${type}:`, error.message);
-        res.status(500).json({ error: "Image generation failed" });
+        console.error(`Error generating ${type}:`, error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: "Image generation failed",
+            msg: error.message 
+        });
     }
 }
 
-// --- API Endpoints (এগুলো বোটের কমান্ডে ব্যবহার করবেন) ---
+// --- সব কমান্ডের এন্ডপয়েন্ট (Routes) ---
 
-// ১. Toilet (size, x, y)
-app.get('/toilet/:id', (req, res) => generateFrame('toilet', req.params.id, res, 170, 215, 410));
+// ১. Toilet (size, x, y) - আপনার প্রথম ছবির পজিশন অনুযায়ী সেট করা
+app.get('/toilet/:id', (req, res) => {
+    generateFrame('toilet', req.params.id, res, 125, 345, 620); 
+});
 
 // ২. Jail
-app.get('/jail/:id', (req, res) => generateFrame('jail', req.params.id, res, 250, 125, 150));
+app.get('/jail/:id', (req, res) => {
+    generateFrame('jail', req.params.id, res, 250, 125, 150);
+});
 
-// ৩. Hack (isCircle = false, চারকোনা হবে)
-app.get('/hack/:id', (req, res) => generateFrame('hack', req.params.id, res, 280, 110, 80, false));
+// ৩. Hack (Square image)
+app.get('/hack/:id', (req, res) => {
+    generateFrame('hack', req.params.id, res, 300, 100, 80, false);
+});
 
 // ৪. Trash
-app.get('/trash/:id', (req, res) => generateFrame('trash', req.params.id, res, 200, 280, 450));
+app.get('/trash/:id', (req, res) => {
+    generateFrame('trash', req.params.id, res, 200, 280, 450);
+});
 
-// ৫. Wanted (isCircle = false)
-app.get('/wanted/:id', (req, res) => generateFrame('wanted', req.params.id, res, 320, 90, 230, false));
+// ৫. Wanted
+app.get('/wanted/:id', (req, res) => {
+    generateFrame('wanted', req.params.id, res, 320, 90, 230, false);
+});
 
 // ৬. RIP
-app.get('/rip/:id', (req, res) => generateFrame('rip', req.params.id, res, 150, 175, 110));
+app.get('/rip/:id', (req, res) => {
+    generateFrame('rip', req.params.id, res, 150, 175, 110);
+});
 
 // ৭. Hitler
-app.get('/hitler/:id', (req, res) => generateFrame('hitler', req.params.id, res, 140, 230, 160));
-
-// এপিআই লিস্ট দেখার জন্য
-app.get('/api-list', (req, res) => {
-    const host = `https://${req.get('host')}`;
-    res.json({
-        success: true,
-        endpoints: {
-            toilet: `${host}/toilet/ID`,
-            jail: `${host}/jail/ID`,
-            hack: `${host}/hack/ID`,
-            trash: `${host}/trash/ID`,
-            wanted: `${host}/wanted/ID`,
-            rip: `${host}/rip/ID`,
-            hitler: `${host}/hitler/ID`
-        }
-    });
+app.get('/hitler/:id', (req, res) => {
+    generateFrame('hitler', req.params.id, res, 140, 230, 160);
 });
 
+// হোম পেজ এবং হেল্প লিস্ট
 app.get('/', (req, res) => {
-    res.send('<h1>Sabbir Custom API is Online!</h1><p>Visit /api-list for more info.</p>');
+    res.send(`
+        <h1>Sabbir Custom API</h1>
+        <p>Status: Online ✅</p>
+        <ul>
+            <li>/toilet/:id</li>
+            <li>/jail/:id</li>
+            <li>/hack/:id</li>
+            <li>/trash/:id</li>
+            <li>/wanted/:id</li>
+            <li>/rip/:id</li>
+            <li>/hitler/:id</li>
+        </ul>
+    `);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`API running on port ${PORT}`));
