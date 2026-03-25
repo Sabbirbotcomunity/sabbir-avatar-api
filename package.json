@@ -1,21 +1,14 @@
 {
   "name": "sabbir-avatar-api",
   "version": "1.0.0",
-  "type": "module",
-  "description": "Avatar API by Sabbir",
+  "description": "Custom Image API for Bot",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Sabbirbotcomunity/sabbir-avatar-api.git"
-  },
-  "author": "Sabbir",
-  "license": "ISC",
   "dependencies": {
-    "@multiavatar/multiavatar": "^1.0.7",
-    "express": "^5.2.1"
+    "canvas": "^2.11.2",
+    "express": "^4.18.2"
   }
 }
