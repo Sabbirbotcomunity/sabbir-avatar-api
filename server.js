@@ -68,7 +68,7 @@ async function generateFrame(userId, res, size, x, y) {
 
 app.get('/toilet/:id', (req, res) => {
     // পজিশন: size=45, x=135, y=195
-    generateFrame(req.params.id, res, 90, 190, 390);
+    generateFrame(req.params.id, res, 60, 150, 390);
 });
 
 app.get('/', (req, res) => res.json({ status: "Online", endpoint: "/toilet/USER_ID" }));
