@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const IMAGES = {
-    toilet: "https://i.ibb.co/pBT966n/image.png",
+    toilet: "https://i.ibb.co.com/9mY60z5p/received-1628470388385938.webp",
     jail: "https://i.postimg.cc/Xv8P3p7K/jail.png",
     hack: "https://i.postimg.cc/6pM0rX3V/hack.png",
     trash: "https://i.postimg.cc/85zX3S6m/trash.png",
