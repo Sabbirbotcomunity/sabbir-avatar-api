@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // আপনার দেওয়া সেই ডাইরেক্ট ইমেজ লিঙ্ক
 const IMAGES = {
-    toilet: "https://i.ibb.co.com/WNzX1bf0/IMG-20260325-122616.jpg"
+    toilet: "https://i.ibb.co.com/Rph1rt8G/received-1960377504561612.jpg"
 };
 
 async function fetchImage(url) {
