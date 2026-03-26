@@ -62,7 +62,7 @@ app.get('/toilet/:id', (req, res) => {
 // ২. চোর কমান্ড (Chore)
 app.get('/chore/:id', (req, res) => {
     // চোরের জন্য পজিশন: size=200, x=150, y=130
-    generateFrame(req.params.id, res, IMAGES.chore, 60, 140, 130);
+    generateFrame(req.params.id, res, IMAGES.chore, 90, 170, 130);
 });
 
 app.get('/', (req, res) => res.json({ status: "Online", endpoints: ["/toilet/ID", "/chore/ID"] }));
