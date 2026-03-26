@@ -56,13 +56,13 @@ async function generateFrame(userId, res, bgUrl, size, x, y) {
 // ১. টয়লেট কমান্ড
 app.get('/toilet/:id', (req, res) => {
     // এখানে IMAGES.toilet সরাসরি পাঠিয়ে দেওয়া হয়েছে
-    generateFrame(req.params.id, res, IMAGES.toilet, 40, 250, 440);
+    generateFrame(req.params.id, res, IMAGES.toilet, 40, 239, 440);
 });
 
 // ২. চোর কমান্ড (Chore)
 app.get('/chore/:id', (req, res) => {
     // চোরের জন্য পজিশন: size=200, x=150, y=130
-    generateFrame(req.params.id, res, IMAGES.chore, 200, 150, 130);
+    generateFrame(req.params.id, res, IMAGES.chore, 60, 140, 130);
 });
 
 app.get('/', (req, res) => res.json({ status: "Online", endpoints: ["/toilet/ID", "/chore/ID"] }));
