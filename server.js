@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 const IMAGES = {
     toilet: "https://i.ibb.co.com/Rph1rt8G/received-1960377504561612.jpg",
-    chore: "https://i.ibb.co/68v8zD3/jail.jpg" // চোর/জেলখানা ফ্রেম
+    chore: "https://i.ibb.co.com/0jDzs9xq/file-00000000abf871fab90e3d6afab380f3.png" // চোর/জেলখানা ফ্রেম
 };
 
 async function fetchImage(url) {
